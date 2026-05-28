@@ -3,7 +3,9 @@ from database import models
 from database.db import engine
 from routers import auth,post
 from fastapi.staticfiles import StaticFiles
+from routers import comment
 from Auth import login
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -12,6 +14,19 @@ models.Base.metadata.create_all(engine)
 app.include_router(auth.router)
 app.include_router(post.router)
 app.include_router(login.router)
+app.include_router(comment.router)
+
+origins = [
+    'http://localhost:3000'
+]
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins = origins,
+        allow_credentials = True,
+        allow_methods=['*'],
+        allow_headers=['*']
+)
 
 @app.get("/",
         tags=["Server Health"],

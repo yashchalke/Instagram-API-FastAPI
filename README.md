@@ -7,9 +7,11 @@ A modern, highly-scalable, and secure backend API for an Instagram-like social m
 ## 🚀 Features
 
 *   **🔒 Secure Authentication:** Registration & JWT token-based login via FastAPI OAuth2.
-*   **📝 Post Management:** Create posts with captions, handle custom image types (absolute/relative), and fetch post feeds.
+*   **📝 Post Management & Deletion:** Create posts with captions, support custom image types (absolute/relative), fetch post feeds, and securely delete posts.
+*   **💬 Interactive Comments:** Create and read comments for individual posts under secure user-authentication.
 *   **🖼️ Image Upload Engine:** Upload files securely using standard `multipart/form-data` with automatic collision-safe unique filenames.
 *   **📂 Static Asset Serving:** Embedded server-side static routing to deliver uploaded photos.
+*   **🌐 CORS Pre-configured:** Pre-configured Cross-Origin Resource Sharing (CORS) to easily connect with modern frontend applications (like React, Next.js, or Vue).
 *   **🧪 Robust Test Suite:** Pre-configured with Pytest, testing routers and endpoints effectively.
 
 ---
@@ -88,6 +90,18 @@ Once the server has started successfully, you can access:
 *   **Base API Health Check:** `http://127.0.0.1:8000/`
 *   **Interactive API Docs (Swagger UI):** `http://127.0.0.1:8000/docs`
 *   **Alternative Docs (ReDoc):** `http://127.0.0.1:8000/redoc`
+
+### 🌐 CORS Configuration (Cross-Origin Resource Sharing)
+By default, the backend allows requests originating from **`http://localhost:3000`** (the standard port for React/Next.js).
+
+If your frontend is running on a different port or domain, you can easily customize this in [main.py](file:///d:/Projects/FastAPI/Instagram-FastApi/Backend/main.py) by updating the `origins` list:
+```python
+origins = [
+    'http://localhost:3000',
+    'http://localhost:5173', # Standard Vite development port
+    'https://yourfrontenddomain.com', # Production domain
+]
+```
 
 ---
 
@@ -168,7 +182,8 @@ All protected endpoints require a valid JWT bearer token. Include the header `Au
       "timestamps": "2026-05-28T12:00:00",
       "user": {
         "username": "john_doe"
-      }
+      },
+      "comments": []
     }
     ```
 
@@ -186,7 +201,14 @@ All protected endpoints require a valid JWT bearer token. Include the header `Au
         "timestamps": "2026-05-28T12:00:00",
         "user": {
           "username": "john_doe"
-        }
+        },
+        "comments": [
+          {
+            "text": "This is an amazing post!",
+            "username": "jane_doe",
+            "timestamp": "2026-05-28T13:00:00"
+          }
+        ]
       }
     ]
     ```
@@ -201,6 +223,56 @@ All protected endpoints require a valid JWT bearer token. Include the header `Au
     {
       "filename": "/images/my_uploaded_image_abCDEf.png"
     }
+    ```
+
+#### 4. Delete a Post
+*   **Endpoint:** `DELETE /post/delete/{id}`
+*   **Authentication:** `Required (Bearer Token)`
+*   **URL Path Parameter:** `id` (integer, Post ID)
+*   **Success Response (`200 OK`):**
+    ```json
+    "ok"
+    ```
+    > [!WARNING]
+    > Only the creator of the post is authorized to delete it. Attempting to delete someone else's post returns a `403 Forbidden` response.
+
+---
+
+### 💬 Comments
+
+#### 1. Create a Comment on a Post
+*   **Endpoint:** `POST /comment/create`
+*   **Authentication:** `Required (Bearer Token)`
+*   **Request Body (`application/json`):**
+    ```json
+    {
+      "username": "jane_doe",
+      "text": "This is an amazing post!",
+      "post_id": 1
+    }
+    ```
+*   **Success Response (`201 Created`):**
+    ```json
+    {
+      "text": "This is an amazing post!",
+      "username": "jane_doe",
+      "timestamp": "2026-05-28T13:00:00"
+    }
+    ```
+
+#### 2. Retrieve All Comments for a Post
+*   **Endpoint:** `GET /comment/all/{post_id}`
+*   **Authentication:** `None`
+*   **URL Path Parameter:** `post_id` (integer, Post ID)
+*   **Success Response (`200 OK`):**
+    ```json
+    [
+      {
+        "text": "This is an amazing post!",
+        "username": "jane_doe",
+        "timestamp": "2026-05-28T13:00:00"
+      }
+    ]
     ```
 
 ---

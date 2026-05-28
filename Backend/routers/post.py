@@ -70,3 +70,11 @@ def upload_image(image: UploadFile = File(...),current_user:UserAuth = Depends(g
         shutil.copyfileobj(image.file, buffer)
 
     return {'filename': f'/{path}'}
+
+@router.delete('/delete/{id}',
+               summary="Delete a Post",
+                description="Deletes a specific post from the database by post ID. Only the post creator is authorized to perform this operation.",
+                status_code=status.HTTP_200_OK,
+                response_description="Post Deleted Successfully.")
+def delete_post( id:int, db:Session = Depends(get_db),current_user:UserAuth = Depends(get_current_user)):
+    return db_post.delete(db,id,current_user.id)
