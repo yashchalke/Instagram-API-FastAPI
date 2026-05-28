@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2
+python-dotenv
+pydantic
+passlib
+python-multipart
+aiofiles
+python-jose
+argon2_cffi
