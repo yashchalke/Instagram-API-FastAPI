@@ -9,3 +9,4 @@ python-multipart
 aiofiles
 python-jose
 argon2_cffi
+boto3

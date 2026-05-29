@@ -1,6 +1,6 @@
 # 📸 Instagram Clone API
 
-A modern, highly-scalable, and secure backend API for an Instagram-like social media application. Built using **FastAPI**, **SQLAlchemy ORM**, **PostgreSQL** (via Supabase), and **SQLite** (for testing), featuring OAuth2/JWT security and local media storage/serving.
+A modern, highly-scalable, and secure backend API for an Instagram-like social media application. Built using **FastAPI**, **SQLAlchemy ORM**, **PostgreSQL** (via Supabase), and **SQLite** (for testing), featuring OAuth2/JWT security and AWS S3 cloud media storage.
 
 ---
 
@@ -9,8 +9,8 @@ A modern, highly-scalable, and secure backend API for an Instagram-like social m
 *   **🔒 Secure Authentication:** Registration & JWT token-based login via FastAPI OAuth2.
 *   **📝 Post Management & Deletion:** Create posts with captions, support custom image types (absolute/relative), fetch post feeds, and securely delete posts.
 *   **💬 Interactive Comments:** Create and read comments for individual posts under secure user-authentication.
-*   **🖼️ Image Upload Engine:** Upload files securely using standard `multipart/form-data` with automatic collision-safe unique filenames.
-*   **📂 Static Asset Serving:** Embedded server-side static routing to deliver uploaded photos.
+*   **🖼️ S3-Powered Image Upload:** Integrated with AWS S3 bucket to securely store uploaded images, automatically generate unique collision-safe filenames, and return public S3 URLs.
+*   **📂 Static Asset Serving:** Embedded server-side static routing to deliver local media assets.
 *   **🌐 CORS Pre-configured:** Pre-configured Cross-Origin Resource Sharing (CORS) to easily connect with modern frontend applications (like React, Next.js, or Vue).
 *   **🧪 Robust Test Suite:** Pre-configured with Pytest, testing routers and endpoints effectively.
 
@@ -22,7 +22,7 @@ A modern, highly-scalable, and secure backend API for an Instagram-like social m
 *   **Database Tooling:** [SQLAlchemy ORM](https://www.sqlalchemy.org/)
 *   **Database:** PostgreSQL (Production-ready via Supabase) / SQLite (Testing)
 *   **Security & Hashing:** JWT (via `python-jose`), Password Hashing (via `argon2-cffi` / `passlib`)
-*   **Media Storage:** `python-multipart` & `shutil` local storage engine
+*   **Media Storage:** AWS S3 (via `boto3`) and Python-multipart for secure cloud-based image hosting
 
 ---
 
@@ -76,6 +76,12 @@ DB_URL="YOUR_POSTGRESQL_CONNECTION_STRING_OR_LOCAL_SQLITE_URL"
 SECRET_KEY="YOUR_SUPER_SECRET_JWT_KEY"
 ALGORITHM="HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# AWS S3 Configuration
+AWS_ACCESS_KEY="YOUR_AWS_ACCESS_KEY"
+AWS_ACCESS_SECRET_KEY="YOUR_AWS_SECRET_ACCESS_KEY"
+AWS_REGION="YOUR_AWS_REGION"
+AWS_BUCKET_NAME="YOUR_AWS_BUCKET_NAME"
 ```
 > [!TIP]
 > To quickly generate a secure `SECRET_KEY`, you can run this command in your terminal:
@@ -221,7 +227,8 @@ All protected endpoints require a valid JWT bearer token. Include the header `Au
 *   **Success Response (`201 Created`):**
     ```json
     {
-      "filename": "/images/my_uploaded_image_abCDEf.png"
+      "success": true,
+      "Image_URL": "https://your-bucket-name.s3.your-region.amazonaws.com/unique-uuid.png"
     }
     ```
 

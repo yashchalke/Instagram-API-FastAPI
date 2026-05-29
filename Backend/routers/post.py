@@ -5,9 +5,12 @@ from .schemas import PostBase,PostDisplay,UserAuth
 from database import db_post
 from typing import List
 from Auth.oauth2 import get_current_user
-import random
-import shutil
-import string
+import os 
+import boto3
+import uuid
+# import random
+# import shutil
+# import string
 
 router = APIRouter(
     prefix='/post',
@@ -52,6 +55,18 @@ def new_post(request:PostBase ,db:Session = Depends(get_db), current_user:UserAu
 def get_all_posts(db: Session = Depends(get_db)):
     return db_post.get_all(db)
 
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_ACCESS_SECRET_KEY")
+AWS_REGION = os.getenv("AWS_REGION")
+AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
+
+s3_client = boto3.client(
+    "s3",
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION
+)
+
 @router.post(
     '/image',
     summary="Upload an Image File",
@@ -59,17 +74,48 @@ def get_all_posts(db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
     response_description="Image uploaded successfully."
 )
-def upload_image(image: UploadFile = File(...),current_user:UserAuth = Depends(get_current_user)):
-    letters = string.ascii_letters
-    rand_str = "".join(random.choice(letters) for i in range(6))
-    new = f"_{rand_str}."
-    filename = new.join(image.filename.rsplit('.', 1))
-    path = f'images/{filename}'
+def upload_images(file:UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only Images are allowed to upload"
+        )
+    try:
+        img_ext = file.filename.split(".")[-1]
+        unique_name = f"{uuid.uuid4}.{img_ext}"
 
-    with open(path, "wb") as buffer:
-        shutil.copyfileobj(image.file, buffer)
+        s3_client.upload_fileobj(
+            file.file,
+            AWS_BUCKET_NAME,
+            unique_name,
+            ExtraArgs={
+                "ContentType":file.content_type
+            }
+        )
 
-    return {'filename': f'/{path}'}
+        image_url = (f"https://{AWS_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{unique_name}")
+
+        return{
+            "success":True,
+            "Image_URL":image_url
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)   
+        )
+# def upload_image(image: UploadFile = File(...),current_user:UserAuth = Depends(get_current_user)):
+#     letters = string.ascii_letters
+#     rand_str = "".join(random.choice(letters) for i in range(6))
+#     new = f"_{rand_str}."
+#     filename = new.join(image.filename.rsplit('.', 1))
+#     path = f'images/{filename}'
+
+#     with open(path, "wb") as buffer:
+#         shutil.copyfileobj(image.file, buffer)
+
+#     return {'filename': f'/{path}'}
 
 @router.delete('/delete/{id}',
                summary="Delete a Post",
@@ -78,3 +124,12 @@ def upload_image(image: UploadFile = File(...),current_user:UserAuth = Depends(g
                 response_description="Post Deleted Successfully.")
 def delete_post( id:int, db:Session = Depends(get_db),current_user:UserAuth = Depends(get_current_user)):
     return db_post.delete(db,id,current_user.id)
+
+
+
+
+
+
+
+
+
