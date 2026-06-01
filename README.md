@@ -65,8 +65,9 @@ We recently refactored the Backend API to align with modern SPA (Single Page App
 3.  **🛡️ Upload Endpoint Protection (`POST /post/image`)**:
     *   *Change:* Enforced authentication dependencies (`Depends(get_current_user)`) on the image upload router.
     *   *Why:* Secures S3 bucket uploads so only authenticated users with valid JWT tokens can write media to your cloud storage.
-4.  **🌐 Vite-Standard CORS & Endpoint Adjustments**:
-    *   *Change:* Updated allowed CORS origins in [main.py](file:///d:/Projects/FastAPI/Instagram-FastApi/Backend/main.py) to target the default Vite port (`http://localhost:5173`) instead of React's older port (`http://localhost:3000`).
+4.  **🌐 Dynamic CORS Configuration via Environment Variables**:
+    *   *Change:* Replaced hardcoded origins in [main.py](file:///d:/Projects/FastAPI/Instagram-FastApi/Backend/main.py) with dynamic fetching from the environment via `os.getenv("ORIGIN_URLS")`.
+    *   *Why:* Promotes environment separation and security, allowing you to seamlessly configure allowed origins for staging, production, or local development without modifying the codebase.
     *   *Change:* Removed legacy server-side static image mounting (`/images`), as all images are now served exclusively from cloud S3 buckets.
 5.  **🆔 Post Scheme Refinement**:
     *   *Change:* Exposed the post `id` field inside the `PostDisplay` schema, allowing the frontend to track specific database entries for operations like deleting posts and creating comments.
@@ -98,6 +99,7 @@ We recently refactored the Backend API to align with modern SPA (Single Page App
 4.  Configure your environment in `Backend/.env`:
     ```env
     DB_URL="YOUR_POSTGRESQL_CONNECTION_STRING_OR_LOCAL_SQLITE_URL"
+    ORIGIN_URLS="['http://localhost:5173']"
     SECRET_KEY="YOUR_SUPER_SECRET_JWT_KEY"
     ALGORITHM="HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES=30
