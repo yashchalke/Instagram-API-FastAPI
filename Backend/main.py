@@ -17,7 +17,7 @@ app.include_router(login.router)
 app.include_router(comment.router)
 
 origins = [
-    'http://localhost:3000'
+    'http://localhost:5173'
 ]
 
 app.add_middleware(
@@ -39,5 +39,5 @@ def root():
         "message":"Server is Running..."
     }
 
-app.mount('/images',StaticFiles(directory='images'),name='images')
+
 

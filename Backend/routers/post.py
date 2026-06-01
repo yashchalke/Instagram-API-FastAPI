@@ -74,7 +74,7 @@ s3_client = boto3.client(
     status_code=status.HTTP_201_CREATED,
     response_description="Image uploaded successfully."
 )
-def upload_images(file:UploadFile = File(...)):
+def upload_images(file:UploadFile = File(...),current_user:UserAuth = Depends(get_current_user)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=400,

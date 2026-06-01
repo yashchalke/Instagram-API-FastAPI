@@ -7,6 +7,10 @@ class UserBase(BaseModel):
     email:str
     password:str
 
+class UserLogin(BaseModel):
+    username:str
+    password:str
+
 class UserDisplay(BaseModel):
     username:str
     email:str
@@ -34,6 +38,7 @@ class Comment(BaseModel):
     class config():
         from_attributes = True
 class PostDisplay(BaseModel):
+    id: int
     creator_id:int = Field(validation_alias='user_id')
     image_url:str
     image_url_type:str

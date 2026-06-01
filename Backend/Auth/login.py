@@ -1,10 +1,9 @@
 from fastapi import APIRouter,status,Depends,HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
 from database.models import DbUser
 from sqlalchemy.orm.session import Session
 from database.hashing import Hash
 from .oauth2 import create_access_token
-from routers.schemas import LoginDisplay
+from routers.schemas import LoginDisplay, UserLogin
 from database.db import get_db
 
 router = APIRouter(prefix='/auth',tags=['Authentication'])
@@ -17,7 +16,7 @@ router = APIRouter(prefix='/auth',tags=['Authentication'])
     response_description="Returns a Bearer token along with basic user identification.",
     status_code=status.HTTP_200_OK
 )
-def login_user(db:Session = Depends(get_db),request:OAuth2PasswordRequestForm = Depends()):
+def login_user(request: UserLogin, db: Session = Depends(get_db)):
     user = db.query(DbUser).filter(DbUser.username == request.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
