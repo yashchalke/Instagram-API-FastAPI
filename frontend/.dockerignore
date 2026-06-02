@@ -1,0 +1,18 @@
+node_modules/
+
+dist/
+build/
+
+.git/
+.gitignore
+
+Dockerfile
+docker-compose.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

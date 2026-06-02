@@ -17,4 +17,8 @@ ENV/
 node_modules/
 dist/
 dist-ssr/
-*.local
+*.local
+
+*.pem
+*.pdf
+

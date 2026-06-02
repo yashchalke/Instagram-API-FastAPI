@@ -7,6 +7,7 @@ from Auth import login
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
 
@@ -19,7 +20,7 @@ app.include_router(post.router)
 app.include_router(login.router)
 app.include_router(comment.router)
 
-origins = os.getenv("ORIGIN_URLS")
+origins = json.loads(os.getenv("ORIGIN_URLS"))
 
 app.add_middleware(
         CORSMiddleware,

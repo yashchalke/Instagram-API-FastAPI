@@ -12,6 +12,7 @@ const Home = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        console.log("BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
         const response = await fetch(`${BACKEND_URL}/post/all`)
         if (!response.ok) {
           throw new Error('Failed to fetch posts')
