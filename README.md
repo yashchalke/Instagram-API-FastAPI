@@ -99,7 +99,7 @@ We recently refactored the Backend API to align with modern SPA (Single Page App
 4.  Configure your environment in `Backend/.env`:
     ```env
     DB_URL="YOUR_POSTGRESQL_CONNECTION_STRING_OR_LOCAL_SQLITE_URL"
-    ORIGIN_URLS="['http://localhost:5173']"
+    ORIGIN_URLS='["http://localhost:5173", "http://localhost:3000"]'
     SECRET_KEY="YOUR_SUPER_SECRET_JWT_KEY"
     ALGORITHM="HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -110,6 +110,9 @@ We recently refactored the Backend API to align with modern SPA (Single Page App
     AWS_REGION="YOUR_AWS_REGION"
     AWS_BUCKET_NAME="YOUR_AWS_BUCKET_NAME"
     ```
+    > [!IMPORTANT]
+    > **Strict JSON Formatting for CORS**: Because the backend dynamically parses CORS origins via `json.loads(os.getenv("ORIGIN_URLS"))`, the environment variable must be a **valid JSON string array using double quotes**. Single quotes (e.g. `['http://localhost:5173']`) will cause a JSON decoder syntax error on startup.
+
 5.  Launch the FastAPI server:
     ```bash
     uvicorn main:app --reload
@@ -137,6 +140,48 @@ We recently refactored the Backend API to align with modern SPA (Single Page App
     npm run dev
     ```
     *   **Local URL:** `http://localhost:5173/`
+
+---
+
+### Part 3: Containerized Execution (Docker & Docker Compose)
+
+We provide highly optimized Docker configurations to run both micro-services in isolated, reproducible container environments. This is the **recommended** way to run and test the complete stack locally as a single orchestratable unit.
+
+#### 🐳 Containerization Architecture & Strategies
+*   **Backend (`Backend/Dockerfile`):** Built on lightweight `python:3.11-slim` to minimize image size. Installs strict package versions from `requirements.txt` with cache purging and boots the FastAPI server using `uvicorn` bound to host `0.0.0.0` on port `8000`.
+*   **Frontend (`frontend/Dockerfile`):** Implements a **multi-stage build** for visual excellence and production performance:
+    1.  *Stage 1 (React Builder):* Uses a `node:20-alpine` environment to install npm packages and compiles production-ready assets via `npm run build` into highly-optimized static files in `/app/dist`.
+    2.  *Stage 2 (Nginx Server):* Deploys a super-lightweight `nginx:alpine` image. It discards Node.js dependencies entirely and copies the static assets straight into Nginx's HTML root (`/usr/share/nginx/html`), exposing standard port `80`.
+*   **Orchestration (`docker-compose.yml`):** Maps the unified network setup:
+    *   Exposes Backend on **`http://localhost:8000`**
+    *   Exposes Frontend on **`http://localhost:3000`** (Nginx port `80` mapped to port `3000` on your host machine)
+    *   Maintains startup ordering (`depends_on: backend`) and automatically mounts respective `.env` configuration files.
+
+#### 🛠️ Docker Quickstart Commands
+
+1.  **Prepare Environments:**
+    Ensure both `Backend/.env` and `frontend/.env` are present in their folders with the correct keys. In `frontend/.env`, direct your queries to the local host backend port:
+    ```env
+    VITE_BACKEND_URL="http://localhost:8000"
+    ```
+
+2.  **Start the Stack:**
+    Run the following command in the project root directory:
+    ```bash
+    docker compose up --build
+    ```
+    *This compiles the Dockerfiles, links the configurations, hooks up port mappings, and launches the entire application environment.*
+
+3.  **Access points:**
+    *   **Interactive React UI:** `http://localhost:3000/`
+    *   **FastAPI Backend API:** `http://localhost:8000/`
+    *   **Interactive Swagger API Docs:** `http://localhost:8000/docs`
+
+4.  **Shutdown Stack:**
+    To gracefully spin down and clean up containers:
+    ```bash
+    docker compose down
+    ```
 
 ---
 

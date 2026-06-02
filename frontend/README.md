@@ -85,6 +85,23 @@ Once started, the application will be running at **`http://localhost:5173`**.
 
 ---
 
+### 🐳 Alternative: Running with Docker (Production & Staging Build)
+The frontend is fully containerized using a high-performance **multi-stage build** (`frontend/Dockerfile`):
+1. **React Build Stage**: Compiles files in a `node:20-alpine` environment and generates production-ready minified output using Vite.
+2. **Nginx Hosting Stage**: Copies static assets into Nginx's HTML root directory and serves them on exposed port `80` with minimal memory footprint.
+
+To build and run the frontend container independently:
+```bash
+# Build the Docker image
+docker build -t instagram-frontend .
+
+# Run the container mapping host port 3000 to container port 80
+docker run -p 3000:80 --env-file .env instagram-frontend
+```
+*Note: In containerized environment mode, ensure your `VITE_BACKEND_URL` in `frontend/.env` is set correctly to point to the backend container or service (usually `http://localhost:8000`). If orchestrating both micro-services, utilize the root [docker-compose.yml](file:///d:/Projects/FastAPI/Instagram-FastApi/docker-compose.yml) as detailed in the root [README.md](file:///d:/Projects/FastAPI/Instagram-FastApi/README.md).*
+
+---
+
 ## 💡 Architecture & Key Modules
 
 ### 🔐 Authentication Context (`src/context/AuthContext.jsx`)
